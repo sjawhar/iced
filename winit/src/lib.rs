@@ -2134,7 +2134,6 @@ where
                 {
                     _ = control_sender.start_send(Control::Cleanup(id)).ok();
                 }
-                let proxy = clipboard.proxy();
                 #[cfg(wayland_platform)]
                 platform_specific
                     .send_wayland(platform_specific::Action::RemoveWindow(id));
@@ -2143,22 +2142,10 @@ where
                         DndSurface(Arc::new(Box::new(window.raw.clone()))),
                         Vec::new(),
                     );
-                    if clipboard.window_id() == Some(window.raw.id()) {
-                        *clipboard = window_manager
-                            .first()
-                            .map(|window| window.raw.clone())
-                            .zip(proxy.clone())
-                            .map(|(w, proxy)| {
-                                Clipboard::connect(
-                                    w,
-                                    crate::clipboard::ControlSender {
-                                        sender: control_sender.clone(),
-                                        proxy,
-                                    },
-                                )
-                            })
-                            .unwrap_or_else(Clipboard::unconnected);
-                    }
+                    clipboard.window_removed(
+                        window.raw.id(),
+                        window_manager.first().map(|window| window.raw.clone()),
+                    );
 
                     events.push((
                         Some(id),

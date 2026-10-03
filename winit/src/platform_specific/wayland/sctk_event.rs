@@ -722,12 +722,10 @@ impl SctkEvent {
                                 DndSurface(Arc::new(Box::new(w.raw.clone()))),
                                 Vec::new(),
                             );
-                            if clipboard
-                                .window_id()
-                                .is_some_and(|id| w.raw.id() == id)
-                            {
-                                *clipboard = Clipboard::unconnected();
-                            }
+                            clipboard.window_removed(
+                                w.raw.id(),
+                                window_manager.first().map(|w| w.raw.clone()),
+                            );
                         }
                         events.push((
                             Some(id.inner()),
@@ -939,12 +937,12 @@ impl SctkEvent {
                                         ))),
                                         Vec::new(),
                                     );
-                                    if clipboard
-                                        .window_id()
-                                        .is_some_and(|id| w.raw.id() == id)
-                                    {
-                                        *clipboard = Clipboard::unconnected();
-                                    }
+                                    clipboard.window_removed(
+                                        w.raw.id(),
+                                        window_manager
+                                            .first()
+                                            .map(|w| w.raw.clone()),
+                                    );
                                 }
                                 _ = user_interfaces.remove(&id.inner());
 
@@ -1672,12 +1670,10 @@ impl SctkEvent {
                                 DndSurface(Arc::new(Box::new(w.raw.clone()))),
                                 Vec::new(),
                             );
-                            if clipboard
-                                .window_id()
-                                .is_some_and(|id| w.raw.id() == id)
-                            {
-                                *clipboard = Clipboard::unconnected();
-                            }
+                            clipboard.window_removed(
+                                w.raw.id(),
+                                window_manager.first().map(|w| w.raw.clone()),
+                            );
                         }
                         events.push((
                             Some(id_wrapper.inner()),

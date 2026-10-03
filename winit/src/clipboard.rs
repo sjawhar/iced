@@ -103,18 +103,6 @@ impl Clipboard {
         }
     }
 
-    pub(crate) fn proxy(&self) -> Option<winit::event_loop::EventLoopProxy> {
-        if let State::Connected {
-            sender: ControlSender { proxy, .. },
-            ..
-        } = &self.state
-        {
-            Some(proxy.clone())
-        } else {
-            None
-        }
-    }
-
     /// Creates a new [`Clipboard`] that isn't associated with a window.
     /// This clipboard will never contain a copied value.
     pub fn unconnected() -> Clipboard {
@@ -174,6 +162,28 @@ impl Clipboard {
         match &self.state {
             State::Connected { window, .. } => Some(window.id()),
             State::Unavailable => None,
+        }
+    }
+
+    /// Handles removal of the window with the given `id`.
+    ///
+    /// When it is the window this [`Clipboard`] was created with, the
+    /// connection moves to `next` instead of being recreated: the clipboard
+    /// belongs to the display connection that every window shares, and
+    /// dropping it would also destroy any selection this application
+    /// currently owns. It disconnects only when no window remains.
+    pub(crate) fn window_removed(
+        &mut self,
+        id: WindowId,
+        next: Option<Arc<dyn Window>>,
+    ) {
+        if self.window_id() != Some(id) {
+            return;
+        }
+
+        match (&mut self.state, next) {
+            (State::Connected { window, .. }, Some(next)) => *window = next,
+            _ => *self = Clipboard::unconnected(),
         }
     }
 
